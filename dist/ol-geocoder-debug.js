@@ -1,17 +1,24 @@
 /*!
- * ol-geocoder - v3.0.01
+ * ol-geocoder - v3.1.0
  * A geocoder extension for OpenLayers.
  * https://github.com/jonataswalker/ol-geocoder
- * Built: Thu Apr 26 2018 14:37:52 GMT+0200 (CEST)
+ * Built: Thu Apr 26 2018 14:45:32 GMT+0200 (CEST)
  */
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('openlayers')) :
-	typeof define === 'function' && define.amd ? define(['openlayers'], factory) :
-	(global.Geocoder = factory(global.ol));
-}(this, (function (ol) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/control/control'), require('ol/style/style'), require('ol/style/icon'), require('ol/layer/vector'), require('ol/source/vector'), require('ol/geom/point'), require('ol/feature'), require('ol/proj')) :
+	typeof define === 'function' && define.amd ? define(['ol/control/control', 'ol/style/style', 'ol/style/icon', 'ol/layer/vector', 'ol/source/vector', 'ol/geom/point', 'ol/feature', 'ol/proj'], factory) :
+	(global.Geocoder = factory(global.ol.control.Control,global.ol.style.Style,global.ol.style.Icon,global.ol.layer.Vector,global.ol.source.Vector,global.ol.geom.Point,global.ol.Feature,global.ol.proj));
+}(this, (function (Control,Style,Icon,LayerVector,SourceVector,Point,Feature,proj) { 'use strict';
 
-ol = ol && ol.hasOwnProperty('default') ? ol['default'] : ol;
+Control = Control && Control.hasOwnProperty('default') ? Control['default'] : Control;
+Style = Style && Style.hasOwnProperty('default') ? Style['default'] : Style;
+Icon = Icon && Icon.hasOwnProperty('default') ? Icon['default'] : Icon;
+LayerVector = LayerVector && LayerVector.hasOwnProperty('default') ? LayerVector['default'] : LayerVector;
+SourceVector = SourceVector && SourceVector.hasOwnProperty('default') ? SourceVector['default'] : SourceVector;
+Point = Point && Point.hasOwnProperty('default') ? Point['default'] : Point;
+Feature = Feature && Feature.hasOwnProperty('default') ? Feature['default'] : Feature;
+proj = proj && proj.hasOwnProperty('default') ? proj['default'] : proj;
 
 var containerId = "gcd-container";
 var buttonControlId = "gcd-button-control";
@@ -763,6 +770,7 @@ function json(obj) {
     const config = {
       method: 'GET',
       mode: 'cors',
+      credentials: 'same-origin',
     };
 
     if (obj.jsonp) {
@@ -835,9 +843,9 @@ const klasses$1 = VARS.cssClasses;
 var Nominatim = function Nominatim(base, els) {
   this.Base = base;
   this.layerName = randomId('geocoder-layer-');
-  this.layer = new ol.layer.Vector({
+  this.layer = new LayerVector({
     name: this.layerName,
-    source: new ol.source.Vector()
+    source: new SourceVector()
   });
   this.options = base.options;
   // provider is either the name of a built-in provider as a string or an
@@ -1027,13 +1035,12 @@ Nominatim.prototype.chosen = function chosen (place, addressHtml, addressObj, ad
   const map = this.Base.getMap();
   const coord_ = [parseFloat(place.lon), parseFloat(place.lat)];
   const projection = map.getView().getProjection();
-
   const resultProjection = this.options.projection || 'EPSG:4326';
-  const coord = ol.proj.transform(coord_, resultProjection, projection);
+  const coord = proj.transform(coord_, resultProjection, projection);
   let bbox = place.bbox;
 
   if (bbox) {
-    bbox = ol.proj.transformExtent(bbox, resultProjection, projection);
+    bbox = proj.transformExtent(bbox, resultProjection, projection);
   }
   const address = {
     formatted: addressHtml,
@@ -1069,7 +1076,7 @@ Nominatim.prototype.chosen = function chosen (place, addressHtml, addressObj, ad
 };
 
 Nominatim.prototype.createFeature = function createFeature (coord) {
-  const feature = new ol.Feature(new ol.geom.Point(coord));
+  const feature = new Feature(new Point(coord));
   this.addLayer();
   feature.setStyle(this.options.featureStyle);
   feature.setId(randomId('geocoder-ft-'));
@@ -1195,7 +1202,7 @@ Nominatim.prototype.addLayer = function addLayer () {
  * @class Base
  * @extends {ol.control.Control}
  */
-var Base = (function (superclass) {
+var Base = (function (Control$$1) {
   function Base(type, options) {
     if ( type === void 0 ) type = CONTROL_TYPE.NOMINATIM;
     if ( options === void 0 ) options = {};
@@ -1211,9 +1218,7 @@ var Base = (function (superclass) {
     assert(typeof options === 'object', '@param `options` should be object!');
 
     DEFAULT_OPTIONS.featureStyle = [
-      new ol.style.Style({
-        image: new ol.style.Icon({ scale: .7, src: FEATURE_SRC })
-      })
+      new Style({ image: new Icon({ scale: .7, src: FEATURE_SRC }) })
     ];
 
     this.options = mergeOptions(DEFAULT_OPTIONS, options);
@@ -1230,11 +1235,11 @@ var Base = (function (superclass) {
       // TODO
     }
 
-    superclass.call(this, { element: this.container });
+    Control$$1.call(this, { element: this.container });
   }
 
-  if ( superclass ) Base.__proto__ = superclass;
-  Base.prototype = Object.create( superclass && superclass.prototype );
+  if ( Control$$1 ) Base.__proto__ = Control$$1;
+  Base.prototype = Object.create( Control$$1 && Control$$1.prototype );
   Base.prototype.constructor = Base;
 
   /**
@@ -1268,7 +1273,7 @@ var Base = (function (superclass) {
   };
 
   return Base;
-}(ol.control.Control));
+}(Control));
 
 return Base;
 

@@ -11,10 +11,23 @@ import uglify from 'rollup-plugin-uglify';
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const external = Object.keys(pkg.dependencies);
+const globals = {};
 
-const globals = {
-  openlayers: 'ol',
-};
+const ol = [
+  ['ol/control/control', 'ol.control.Control'],
+  ['ol/style/style', 'ol.style.Style'],
+  ['ol/style/icon', 'ol.style.Icon'],
+  ['ol/layer/vector', 'ol.layer.Vector'],
+  ['ol/source/vector', 'ol.source.Vector'],
+  ['ol/geom/point', 'ol.geom.Point'],
+  ['ol/proj', 'ol.proj'],
+  ['ol/feature', 'ol.Feature'],
+];
+
+ol.forEach(each => {
+  external.push(each[0]);
+  globals[each[0]] = each[1];
+});
 
 const lintOpts = {
   // extensions: ['js'],
@@ -37,10 +50,10 @@ const banner = readFileSync('./build/banner.js', 'utf-8')
 export default [
   {
     external,
-    banner,
-    globals,
     input: './src/base.js',
     output: {
+      banner,
+      globals,
       file: './dist/ol-geocoder.js',
       format: 'umd',
       name: 'Geocoder',
@@ -58,10 +71,10 @@ export default [
   },
   {
     external,
-    banner,
-    globals,
     input: './src/base.js',
     output: {
+      banner,
+      globals,
       file: './dist/ol-geocoder-debug.js',
       format: 'umd',
       name: 'Geocoder',
