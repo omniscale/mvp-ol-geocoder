@@ -5,6 +5,7 @@ import { MapQuest } from './providers/mapquest';
 import { Pelias } from './providers/pelias';
 import { Bing } from './providers/bing';
 import { OpenCage } from './providers/opencage';
+import { GeoCodr } from './providers/geocodr';
 import { VARS, TARGET_TYPE, PROVIDERS, EVENT_TYPE } from 'konstants';
 import { randomId, flyTo } from 'helpers/mix';
 import { json } from 'helpers/ajax';
@@ -29,13 +30,11 @@ export class Nominatim {
    */
   constructor(base, els) {
     this.Base = base;
-
     this.layerName = randomId('geocoder-layer-');
     this.layer = new ol.layer.Vector({
       name: this.layerName,
       source: new ol.source.Vector()
     });
-
     this.options = base.options;
     // provider is either the name of a built-in provider as a string or an
     // object that implements the provider API
@@ -56,6 +55,7 @@ export class Nominatim {
     this.Pelias = new Pelias();
     this.Bing = new Bing();
     this.OpenCage = new OpenCage();
+    this.GeoCodr = new GeoCodr();
   }
 
   setListeners() {
@@ -138,7 +138,6 @@ export class Nominatim {
       this.options.debug && console.info(res);
 
       removeClass(this.els.reset, klasses.spin);
-
       //will be fullfiled according to provider
       let res_;
       switch (this.options.provider) {
@@ -166,6 +165,10 @@ export class Nominatim {
         case PROVIDERS.OPENCAGE:
           res_ = res.results.length ?
             this.OpenCage.handleResponse(res.results) : undefined;
+          break;
+        case PROVIDERS.GEOCODR:
+          res_ = res.features.length ?
+            this.GeoCodr.handleResponse(res.features) : undefined;
           break;
         default:
           res_ = this.options.provider.handleResponse(res);
@@ -214,11 +217,13 @@ export class Nominatim {
     const map = this.Base.getMap();
     const coord_ = [parseFloat(place.lon), parseFloat(place.lat)];
     const projection = map.getView().getProjection();
-    const coord = ol.proj.transform(coord_, 'EPSG:4326', projection);
+
+    const resultProjection = this.options.projection || 'EPSG:4326';
+    const coord = ol.proj.transform(coord_, resultProjection, projection);
     let bbox = place.bbox;
 
     if (bbox) {
-      bbox = ol.proj.transformExtent(bbox, 'EPSG:4326', projection);
+      bbox = ol.proj.transformExtent(bbox, resultProjection, projection);
     }
     const address = {
       formatted: addressHtml,
@@ -308,6 +313,9 @@ export class Nominatim {
         break;
       case PROVIDERS.OPENCAGE:
         provider = this.OpenCage.getParameters(options);
+        break;
+      case PROVIDERS.GEOCODR:
+        provider = this.GeoCodr.getParameters(options);
         break;
       default:
         provider = options.provider.getParameters(options);

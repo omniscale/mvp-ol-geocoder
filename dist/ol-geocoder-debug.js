@@ -2,7 +2,7 @@
  * ol-geocoder - v3.0.01
  * A geocoder extension for OpenLayers.
  * https://github.com/jonataswalker/ol-geocoder
- * Built: Mon Nov 27 2017 17:57:30 GMT-0200 (-02)
+ * Built: Thu Apr 26 2018 14:37:52 GMT+0200 (CEST)
  */
 
 (function (global, factory) {
@@ -62,7 +62,8 @@ const PROVIDERS = {
   PHOTON: 'photon',
   BING: 'bing',
   OPENCAGE: 'opencage',
-  PELIAS: 'pelias'
+  PELIAS: 'pelias',
+  GEOCODR: 'geocodr'
 };
 
 const DEFAULT_OPTIONS = {
@@ -477,7 +478,7 @@ Photon.prototype.handleResponse = function handleResponse (results) {
 var OpenStreet = function OpenStreet() {
 
   this.settings = {
-    url: 'http://nominatim.openstreetmap.org/search/',
+    url: 'https://nominatim.openstreetmap.org/search/',
     params: {
       q: '',
       format: 'json',
@@ -714,6 +715,48 @@ OpenCage.prototype.handleResponse = function handleResponse (results) {
   }); });
 };
 
+/**
+ * @class GeoCodr
+ */
+
+var GeoCodr = function GeoCodr() {
+  this.settings = {
+    url: 'http://dev.omniscale.net:5000/query?',
+    params: {
+      query: '',
+      key: '',
+      limit: 5,
+      type: 'search',
+      class: 'address',
+      shape: 'centroid'
+    }
+  };
+};
+
+GeoCodr.prototype.getParameters = function getParameters (options) {
+  return {
+    url: this.settings.url,
+    params: {
+      query: options.query,
+      key: options.key,
+      type: options.search || this.settings.params.type,
+      class: options.class || this.settings.params.class,
+      shape: options.shape || this.settings.params.shape,
+      limit: options.limit || this.settings.params.limit
+    }
+  };
+};
+
+GeoCodr.prototype.handleResponse = function handleResponse (results) {
+  return results.map(function (result) { return ({
+    lon: result.geometry.coordinates[0],
+    lat: result.geometry.coordinates[1],
+    address: {
+      name: result.properties._title_
+    }
+  }); });
+};
+
 function json(obj) {
   return new Promise(function (resolve, reject) {
     const url = encodeUrlXhr(obj.url, obj.data);
@@ -791,13 +834,11 @@ const klasses$1 = VARS.cssClasses;
  */
 var Nominatim = function Nominatim(base, els) {
   this.Base = base;
-
   this.layerName = randomId('geocoder-layer-');
   this.layer = new ol.layer.Vector({
     name: this.layerName,
     source: new ol.source.Vector()
   });
-
   this.options = base.options;
   // provider is either the name of a built-in provider as a string or an
   // object that implements the provider API
@@ -818,6 +859,7 @@ var Nominatim = function Nominatim(base, els) {
   this.Pelias = new Pelias();
   this.Bing = new Bing();
   this.OpenCage = new OpenCage();
+  this.GeoCodr = new GeoCodr();
 };
 
 Nominatim.prototype.setListeners = function setListeners () {
@@ -904,7 +946,6 @@ Nominatim.prototype.query = function query (q) {
     this$1.options.debug && console.info(res);
 
     removeClass(this$1.els.reset, klasses$1.spin);
-
     //will be fullfiled according to provider
     let res_;
     switch (this$1.options.provider) {
@@ -932,6 +973,10 @@ Nominatim.prototype.query = function query (q) {
       case PROVIDERS.OPENCAGE:
         res_ = res.results.length ?
           this$1.OpenCage.handleResponse(res.results) : undefined;
+        break;
+      case PROVIDERS.GEOCODR:
+        res_ = res.features.length ?
+          this$1.GeoCodr.handleResponse(res.features) : undefined;
         break;
       default:
         res_ = this$1.options.provider.handleResponse(res);
@@ -982,11 +1027,13 @@ Nominatim.prototype.chosen = function chosen (place, addressHtml, addressObj, ad
   const map = this.Base.getMap();
   const coord_ = [parseFloat(place.lon), parseFloat(place.lat)];
   const projection = map.getView().getProjection();
-  const coord = ol.proj.transform(coord_, 'EPSG:4326', projection);
+
+  const resultProjection = this.options.projection || 'EPSG:4326';
+  const coord = ol.proj.transform(coord_, resultProjection, projection);
   let bbox = place.bbox;
 
   if (bbox) {
-    bbox = ol.proj.transformExtent(bbox, 'EPSG:4326', projection);
+    bbox = ol.proj.transformExtent(bbox, resultProjection, projection);
   }
   const address = {
     formatted: addressHtml,
@@ -1076,6 +1123,9 @@ Nominatim.prototype.getProvider = function getProvider (options) {
       break;
     case PROVIDERS.OPENCAGE:
       provider = this.OpenCage.getParameters(options);
+      break;
+    case PROVIDERS.GEOCODR:
+      provider = this.GeoCodr.getParameters(options);
       break;
     default:
       provider = options.provider.getParameters(options);
