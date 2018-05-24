@@ -54,9 +54,11 @@
 
   var geocoder = new Geocoder('nominatim', {
     provider: 'geocodr',
+    key: 'abc',
     autoComplete: false,
     targetType: 'text-input',
     lang: 'de',
+    limit: 25,
     keepOpen: true,
     placeholder: 'Suche...',
     preventDefault: true,

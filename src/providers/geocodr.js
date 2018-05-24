@@ -8,11 +8,11 @@ export class GeoCodr {
    */
   constructor() {
     this.settings = {
-      url: 'http://dev.omniscale.net:5000/query?',
+      url: '/query?',
       params: {
         query: '',
         key: '',
-        limit: 5,
+        limit: 25,
         type: 'search',
         class: 'address',
         shape: 'centroid'

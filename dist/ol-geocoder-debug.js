@@ -2,7 +2,7 @@
  * ol-geocoder - v3.1.0
  * A geocoder extension for OpenLayers.
  * https://github.com/jonataswalker/ol-geocoder
- * Built: Thu Apr 26 2018 14:45:32 GMT+0200 (CEST)
+ * Built: Thu May 03 2018 14:04:11 GMT+0200 (CEST)
  */
 
 (function (global, factory) {
@@ -728,11 +728,11 @@ OpenCage.prototype.handleResponse = function handleResponse (results) {
 
 var GeoCodr = function GeoCodr() {
   this.settings = {
-    url: 'http://dev.omniscale.net:5000/query?',
+    url: '/query?',
     params: {
       query: '',
       key: '',
-      limit: 5,
+      limit: 25,
       type: 'search',
       class: 'address',
       shape: 'centroid'
