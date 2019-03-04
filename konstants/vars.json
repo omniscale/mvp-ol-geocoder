@@ -19,7 +19,8 @@
       "input": "gcd-gl-input",
       "expanded": "gcd-gl-expanded",
       "reset": "gcd-gl-reset",
-      "result": "gcd-gl-result"
+      "result": "gcd-gl-result",
+      "paging": "gcd-gl-paging"
     },
     "inputText": {
       "container": "gcd-txt-container",
@@ -27,7 +28,8 @@
       "input": "gcd-txt-input",
       "reset": "gcd-txt-reset",
       "icon": "gcd-txt-glass",
-      "result": "gcd-txt-result"
+      "result": "gcd-txt-result",
+      "paging": "gcd-txt-paging"
     }
   }
 }

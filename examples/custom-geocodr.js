@@ -4,6 +4,7 @@
 (function (win, doc) {
   'use strict';
 
+  proj4.defs('EPSG:25833', '+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs');
 
   var projection = ol.proj.get('EPSG:25833'),
       olview = new ol.View({
@@ -56,7 +57,7 @@
         autoComplete: false,
         targetType: 'text-input',
         lang: 'de',
-        limit: 25,
+        limit: 10,
         keepOpen: true,
         placeholder: 'Suche...',
         preventDefault: true,
@@ -73,8 +74,6 @@
       });
   map.addControl(geocoder);
   map.addOverlay(popup);
-
-  proj4.defs('EPSG:25833', '+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs');
 
   geocoder.on('addresschosen', function (evt) {
     map.getView().animate({ zoom: 18, center: evt.coordinate });

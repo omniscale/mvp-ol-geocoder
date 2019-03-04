@@ -13,6 +13,7 @@ export class GeoCodr {
         query: '',
         key: '',
         limit: 25,
+        offset: 0,
         type: 'search',
         class: 'address',
         shape: 'centroid'
@@ -29,9 +30,17 @@ export class GeoCodr {
         type: options.search || this.settings.params.type,
         class: options.class || this.settings.params.class,
         shape: options.shape || this.settings.params.shape,
-        limit: options.limit || this.settings.params.limit
+        limit: options.limit || this.settings.params.limit,
+        offset: options.offset || this.settings.params.offset
       }
     };
+  }
+
+  handlePagingResponse(res) {
+    const total = res.features_total;
+    const returned = res.features_returned;
+    const offset = res.features_offset;
+    return { 'total': total, 'offset': offset, 'returned': returned };
   }
 
   handleResponse(results) {

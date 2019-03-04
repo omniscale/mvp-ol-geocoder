@@ -48,6 +48,7 @@ export class Nominatim {
         : this.options.provider;
 
     this.els = els;
+    this.paging = els.paging;
     this.lastQuery = '';
     this.container = this.els.container;
     this.registeredListeners = { mapClick: false };
@@ -117,7 +118,11 @@ export class Nominatim {
     }
   }
 
-  query(q) {
+  query(q, offsetOption) {
+    let offset = 0;
+    if (offsetOption) {
+      offset = offsetOption;
+    }
     const provider = this.getProvider({
       query: q,
       provider: this.options.provider,
@@ -125,10 +130,12 @@ export class Nominatim {
       lang: this.options.lang,
       countrycodes: this.options.countrycodes,
       limit: this.options.limit,
+      offset: offset,
     });
 
-    if (this.lastQuery === q && this.els.result.firstChild) return;
-
+    if (offsetOption === undefined &&
+       this.lastQuery === q &&
+       this.els.result.firstChild) return;
     this.lastQuery = q;
     this.clearResults();
     addClass(this.els.reset, klasses.spin);
@@ -152,6 +159,7 @@ export class Nominatim {
 
         //will be fullfiled according to provider
         let res_;
+        let pag_;
         switch (this.options.provider) {
           case PROVIDERS.OSM:
             res_ = res.length ? this.OpenStreet.handleResponse(res) : undefined;
@@ -183,6 +191,9 @@ export class Nominatim {
             res_ = res.features.length
               ? this.GeoCodr.handleResponse(res.features)
               : undefined;
+            pag_ = res.features.length
+              ? this.GeoCodr.handlePagingResponse(res.properties)
+              : undefined;
             break;
           default:
             res_ = this.options.provider.handleResponse(res);
@@ -190,6 +201,7 @@ export class Nominatim {
         }
         if (res_) {
           this.createList(res_);
+          this.createPaging(pag_);
           this.listenMapClick();
         }
       })
@@ -201,6 +213,63 @@ export class Nominatim {
         );
         this.els.result.appendChild(li);
       });
+  }
+
+  createPaging(response) {
+    if (response.returned >= response.total) {
+      return;
+    }
+    const div = this.els.paging;
+
+    const htmlPagingLeft = `<a href="#"><</a>`;
+    const spanLeft = createElement('span', htmlPagingLeft);
+
+    const start = response.offset + 1;
+    const htmlPagingContent = start
+      + ' bis ' + response.returned
+      + ' von ' + response.total;
+    const spanContent = createElement('span', htmlPagingContent);
+
+    const htmlPagingRight = `<a href="#">></a>`;
+    const spanRight = createElement('span', htmlPagingRight);
+
+    let offset = response.offset - this.options.limit;
+    if (offset >= 0) {
+      spanLeft.addEventListener(
+        'click',
+        evt => {
+          evt.preventDefault();
+          let offsetOption = response.offset - this.options.limit;
+          this.query(this.lastQuery, offsetOption);
+        },
+        false,
+      );
+      addClass(spanLeft, 'active');
+    } else {
+      addClass(spanLeft, 'deactive');
+    }
+
+    let nextOffset = response.offset + this.options.limit;
+    let hasNextOffset = nextOffset - response.total;
+
+    if (hasNextOffset < 0) {
+      spanRight.addEventListener(
+        'click',
+        evt => {
+          evt.preventDefault();
+          let offsetOption = response.offset + this.options.limit;
+          this.query(this.lastQuery, offsetOption);
+        },
+        false,
+      );
+      addClass(spanRight, 'active');
+    } else {
+      addClass(spanRight, 'deactive');
+    }
+
+    div.appendChild(spanLeft);
+    div.appendChild(spanContent);
+    div.appendChild(spanRight);
   }
 
   createList(response) {
@@ -393,7 +462,7 @@ export class Nominatim {
   clearResults(collapse) {
     collapse && this.options.targetType === TARGET_TYPE.GLASS
       ? this.collapse()
-      : removeAllChildren(this.els.result);
+      : removeAllChildren(this.els.result); removeAllChildren(this.els.paging);
   }
 
   getSource() {
