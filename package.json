@@ -64,13 +64,13 @@
     "chalk": "^2.4.1",
     "cssnano": "^4.0.4",
     "dotenv": "^6.0.0",
-    "eslint": "^5.2.0",
+    "eslint": "^5.15.0",
     "eslint-config-jwalker": "^5.1.1",
     "eslint-plugin-jest": "^21.18.0",
     "eslint-plugin-testcafe": "^0.2.1",
     "gzip-size": "^5.0.0",
-    "jest": "^23.4.2",
-    "node-sass": "^4.9.2",
+    "jest": "^24.1.0",
+    "node-sass": "^4.11.0",
     "node-sass-json-importer": "^3.3.1",
     "npm-run-all": "^4.1.3",
     "ol": "^5.1.3",
@@ -86,7 +86,7 @@
     "rollup-plugin-json": "^3.0.0",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-uglify": "^4.0.0",
-    "testcafe": "^0.20.5",
+    "testcafe": "^15.1.317922",
     "uglify-es": "^3.3.9"
   }
 }

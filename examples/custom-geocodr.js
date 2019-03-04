@@ -4,10 +4,9 @@
 (function (win, doc) {
   'use strict';
 
-  proj4.defs('EPSG:25833', '+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs');
-  var projection = ol.proj.get('EPSG:25833');
 
-  var olview = new ol.View({
+  var projection = ol.proj.get('EPSG:25833'),
+      olview = new ol.View({
         projection: projection,
         center: ol.proj.transform(
           [12.07409, 54.06996], 'EPSG:4326', projection
@@ -50,31 +49,32 @@
         view: olview,
         layers: [baseLayer]
       }),
-      popup = new ol.Overlay.Popup();
-
-  var geocoder = new Geocoder('nominatim', {
-    provider: 'geocodr',
-    key: 'abc',
-    autoComplete: false,
-    targetType: 'text-input',
-    lang: 'de',
-    limit: 25,
-    keepOpen: true,
-    placeholder: 'Suche...',
-    preventDefault: true,
-    projection: projection,
-    featureStyle: new ol.style.Style({
-      fill: new ol.style.Fill({
-        color: 'rgba(239, 130, 20, 0.5)'
-      }),
-      stroke: new ol.style.Stroke({
-        color: '#EF8214',
-        width: 10
-      })
-    })
-  });
+      popup = new ol.Overlay.Popup(),
+      geocoder = new Geocoder('nominatim', {
+        provider: 'geocodr',
+        key: 'abc',
+        autoComplete: false,
+        targetType: 'text-input',
+        lang: 'de',
+        limit: 25,
+        keepOpen: true,
+        placeholder: 'Suche...',
+        preventDefault: true,
+        projection: projection,
+        featureStyle: new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: 'rgba(239, 130, 20, 0.5)'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#EF8214',
+            width: 10
+          })
+        })
+      });
   map.addControl(geocoder);
   map.addOverlay(popup);
+
+  proj4.defs('EPSG:25833', '+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs');
 
   geocoder.on('addresschosen', function (evt) {
     map.getView().animate({ zoom: 18, center: evt.coordinate });

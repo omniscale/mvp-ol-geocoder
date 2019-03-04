@@ -183,7 +183,7 @@ export class Nominatim {
             res_ = res.features.length
               ? this.GeoCodr.handleResponse(res.features)
               : undefined;
-            break;            
+            break;
           default:
             res_ = this.options.provider.handleResponse(res);
             break;
